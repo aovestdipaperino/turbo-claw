@@ -1,7 +1,7 @@
-use std::collections::HashSet;
 use crate::claude::protocol::UiEvent;
 use crate::claude::session::Session;
 use crate::ui::output_view::OutputView;
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FlowState {
@@ -52,7 +52,12 @@ impl Flow {
                 UiEvent::Init { session_id, .. } => {
                     self.session_id = Some(session_id.clone());
                 }
-                UiEvent::Result { cost_usd, input_tokens, output_tokens, .. } => {
+                UiEvent::Result {
+                    cost_usd,
+                    input_tokens,
+                    output_tokens,
+                    ..
+                } => {
                     self.total_cost += cost_usd;
                     self.total_tokens += input_tokens + output_tokens;
                     completed = true;
@@ -64,11 +69,10 @@ impl Flow {
             }
             self.output_view.handle_ui_event(&event);
         }
-        if !completed {
-            if let Some(code) = session.try_wait() {
-                self.output_view.handle_ui_event(&UiEvent::ProcessExited(code));
-                completed = true;
-            }
+        if !completed && let Some(code) = session.try_wait() {
+            self.output_view
+                .handle_ui_event(&UiEvent::ProcessExited(code));
+            completed = true;
         }
         if completed {
             self.state = FlowState::Done;

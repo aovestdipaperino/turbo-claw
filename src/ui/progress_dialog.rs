@@ -46,7 +46,11 @@ impl ProgressDialog {
         let current_state = dialog.state();
         dialog.set_state(current_state | SF_MODAL);
 
-        Box::new(Self { dialog, status_id, cost_id })
+        Box::new(Self {
+            dialog,
+            status_id,
+            cost_id,
+        })
     }
 
     pub fn set_status(&mut self, status: &str) {
@@ -70,16 +74,40 @@ impl ProgressDialog {
 }
 
 impl View for ProgressDialog {
-    fn bounds(&self) -> Rect { self.dialog.bounds() }
-    fn set_bounds(&mut self, bounds: Rect) { self.dialog.set_bounds(bounds); }
-    fn draw(&mut self, terminal: &mut Terminal) { self.dialog.draw(terminal); }
-    fn handle_event(&mut self, event: &mut Event) { self.dialog.handle_event(event); }
-    fn can_focus(&self) -> bool { true }
-    fn state(&self) -> StateFlags { self.dialog.state() }
-    fn set_state(&mut self, state: StateFlags) { self.dialog.set_state(state); }
-    fn options(&self) -> u16 { self.dialog.options() }
-    fn set_options(&mut self, options: u16) { self.dialog.set_options(options); }
-    fn get_palette(&self) -> Option<turbo_vision::core::palette::Palette> { self.dialog.get_palette() }
-    fn get_end_state(&self) -> CommandId { self.dialog.get_end_state() }
-    fn set_end_state(&mut self, cmd: CommandId) { self.dialog.set_end_state(cmd); }
+    fn bounds(&self) -> Rect {
+        self.dialog.bounds()
+    }
+    fn set_bounds(&mut self, bounds: Rect) {
+        self.dialog.set_bounds(bounds);
+    }
+    fn draw(&mut self, terminal: &mut Terminal) {
+        self.dialog.draw(terminal);
+    }
+    fn handle_event(&mut self, event: &mut Event) {
+        self.dialog.handle_event(event);
+    }
+    fn can_focus(&self) -> bool {
+        true
+    }
+    fn state(&self) -> StateFlags {
+        self.dialog.state()
+    }
+    fn set_state(&mut self, state: StateFlags) {
+        self.dialog.set_state(state);
+    }
+    fn options(&self) -> u16 {
+        self.dialog.options()
+    }
+    fn set_options(&mut self, options: u16) {
+        self.dialog.set_options(options);
+    }
+    fn get_palette(&self) -> Option<turbo_vision::core::palette::Palette> {
+        self.dialog.get_palette()
+    }
+    fn get_end_state(&self) -> CommandId {
+        self.dialog.get_end_state()
+    }
+    fn set_end_state(&mut self, cmd: CommandId) {
+        self.dialog.set_end_state(cmd);
+    }
 }

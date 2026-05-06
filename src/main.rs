@@ -1,5 +1,5 @@
-mod claude;
 mod bridge;
+mod claude;
 mod ui;
 
 use std::time::Duration;
@@ -14,9 +14,9 @@ use turbo_vision::views::status_line::{StatusItem, StatusLine};
 use turbo_vision::views::view::View;
 
 use crate::ui::flow::{Flow, FlowState};
-use crate::ui::output_view::{OutputView, CM_OPEN_PROMPT};
-use crate::ui::prompt_dialog::PromptDialog;
+use crate::ui::output_view::{CM_OPEN_PROMPT, OutputView};
 use crate::ui::progress_dialog::ProgressDialog;
+use crate::ui::prompt_dialog::PromptDialog;
 
 const CM_NEW_FLOW: CommandId = 200;
 
@@ -73,7 +73,12 @@ fn main() -> turbo_vision::core::error::Result<()> {
         }
 
         // Get event with 50ms timeout for responsive polling
-        match app.terminal.poll_event(Duration::from_millis(50)).ok().flatten() {
+        match app
+            .terminal
+            .poll_event(Duration::from_millis(50))
+            .ok()
+            .flatten()
+        {
             Some(mut event) => {
                 // Handle custom commands
                 if event.what == EventType::Command {
@@ -98,11 +103,11 @@ fn main() -> turbo_vision::core::error::Result<()> {
 
                             if result == CM_OK {
                                 let prompt_text = memo_ref.borrow().get_text();
-                                if !prompt_text.trim().is_empty() {
-                                    if let Ok(()) = flow.start_prompt(&prompt_text) {
-                                        // Run progress loop
-                                        run_progress_loop(&mut app, &mut flow);
-                                    }
+                                if !prompt_text.trim().is_empty()
+                                    && let Ok(()) = flow.start_prompt(&prompt_text)
+                                {
+                                    // Run progress loop
+                                    run_progress_loop(&mut app, &mut flow);
                                 }
                             }
 
@@ -111,20 +116,20 @@ fn main() -> turbo_vision::core::error::Result<()> {
                             continue;
                         }
                         CM_OPEN_PROMPT => {
-                            if let Some(ref mut flow) = active_flow {
-                                if flow.state == FlowState::Done || flow.state == FlowState::Idle {
-                                    let (sw, sh) = app.terminal.size();
-                                    let prompt_dialog = PromptDialog::new(sw as u16, sh as u16);
-                                    let memo_ref = prompt_dialog.memo_ref();
-                                    let result = app.exec_view(prompt_dialog);
+                            if let Some(ref mut flow) = active_flow
+                                && (flow.state == FlowState::Done || flow.state == FlowState::Idle)
+                            {
+                                let (sw, sh) = app.terminal.size();
+                                let prompt_dialog = PromptDialog::new(sw as u16, sh as u16);
+                                let memo_ref = prompt_dialog.memo_ref();
+                                let result = app.exec_view(prompt_dialog);
 
-                                    if result == CM_OK {
-                                        let prompt_text = memo_ref.borrow().get_text();
-                                        if !prompt_text.trim().is_empty() {
-                                            if let Ok(()) = flow.start_prompt(&prompt_text) {
-                                                run_progress_loop(&mut app, flow);
-                                            }
-                                        }
+                                if result == CM_OK {
+                                    let prompt_text = memo_ref.borrow().get_text();
+                                    if !prompt_text.trim().is_empty()
+                                        && let Ok(()) = flow.start_prompt(&prompt_text)
+                                    {
+                                        run_progress_loop(&mut app, flow);
                                     }
                                 }
                             }
@@ -136,10 +141,10 @@ fn main() -> turbo_vision::core::error::Result<()> {
                 }
 
                 // Let the flow's output view handle keyboard events (scrolling, Enter)
-                if let Some(ref mut flow) = active_flow {
-                    if event.what != EventType::Nothing {
-                        flow.output_view.handle_event(&mut event);
-                    }
+                if let Some(ref mut flow) = active_flow
+                    && event.what != EventType::Nothing
+                {
+                    flow.output_view.handle_event(&mut event);
                 }
 
                 // Pass remaining events to app
@@ -195,28 +200,30 @@ fn run_progress_loop(app: &mut Application, flow: &mut Flow) {
         }
 
         // Check for events
-        match app.terminal.poll_event(Duration::from_millis(50)).ok().flatten() {
-            Some(mut event) => {
-                // Let app handle the event (dispatches to desktop, menu, status)
-                app.handle_event(&mut event);
-                if !app.running {
+        if let Some(mut event) = app
+            .terminal
+            .poll_event(Duration::from_millis(50))
+            .ok()
+            .flatten()
+        {
+            // Let app handle the event (dispatches to desktop, menu, status)
+            app.handle_event(&mut event);
+            if !app.running {
+                flow.cancel();
+                if view_index < app.desktop.child_count() {
+                    app.desktop.remove_child(view_index);
+                }
+                return;
+            }
+            // Check if progress dialog was cancelled
+            if view_index < app.desktop.child_count() {
+                let end_state = app.desktop.child_at(view_index).get_end_state();
+                if end_state != 0 {
                     flow.cancel();
-                    if view_index < app.desktop.child_count() {
-                        app.desktop.remove_child(view_index);
-                    }
+                    app.desktop.remove_child(view_index);
                     return;
                 }
-                // Check if progress dialog was cancelled
-                if view_index < app.desktop.child_count() {
-                    let end_state = app.desktop.child_at(view_index).get_end_state();
-                    if end_state != 0 {
-                        flow.cancel();
-                        app.desktop.remove_child(view_index);
-                        return;
-                    }
-                }
             }
-            None => {}
         }
     }
 }

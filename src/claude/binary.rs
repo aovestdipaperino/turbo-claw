@@ -70,13 +70,13 @@ fn try_candidate_paths() -> Option<PathBuf> {
         }
     }
     let nvm_dir = home.join(".nvm/versions/node");
-    if nvm_dir.is_dir() {
-        if let Ok(entries) = std::fs::read_dir(&nvm_dir) {
-            for entry in entries.flatten() {
-                let claude_path = entry.path().join("bin/claude");
-                if claude_path.exists() {
-                    return Some(claude_path);
-                }
+    if nvm_dir.is_dir()
+        && let Ok(entries) = std::fs::read_dir(&nvm_dir)
+    {
+        for entry in entries.flatten() {
+            let claude_path = entry.path().join("bin/claude");
+            if claude_path.exists() {
+                return Some(claude_path);
             }
         }
     }

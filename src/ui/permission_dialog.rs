@@ -17,7 +17,12 @@ pub struct PermissionDialog {
 }
 
 impl PermissionDialog {
-    pub fn new(screen_width: i16, screen_height: i16, tool_name: &str, input_preview: &str) -> Box<Self> {
+    pub fn new(
+        screen_width: i16,
+        screen_height: i16,
+        tool_name: &str,
+        input_preview: &str,
+    ) -> Box<Self> {
         let dialog_w: i16 = 55.min(screen_width - 4);
         let dialog_h: i16 = 12.min(screen_height - 4);
         let x = (screen_width - dialog_w) / 2;
@@ -28,7 +33,10 @@ impl PermissionDialog {
         let mut dialog = Dialog::new(bounds, &title);
 
         let label_text = format!("Tool: {tool_name}");
-        dialog.add(Box::new(StaticText::new(Rect::new(2, 1, dialog_w - 2, 2), &label_text)));
+        dialog.add(Box::new(StaticText::new(
+            Rect::new(2, 1, dialog_w - 2, 2),
+            &label_text,
+        )));
 
         let preview = if input_preview.len() > ((dialog_w - 4) as usize * 3) {
             let max = (dialog_w - 4) as usize * 3;
@@ -36,12 +44,30 @@ impl PermissionDialog {
         } else {
             input_preview.to_string()
         };
-        dialog.add(Box::new(StaticText::new(Rect::new(2, 3, dialog_w - 2, 6), &preview)));
+        dialog.add(Box::new(StaticText::new(
+            Rect::new(2, 3, dialog_w - 2, 6),
+            &preview,
+        )));
 
         let btn_y = dialog_h - 3;
-        dialog.add(Box::new(Button::new(Rect::new(2, btn_y, 14, btn_y + 2), "~A~pprove", CM_APPROVE, true)));
-        dialog.add(Box::new(Button::new(Rect::new(16, btn_y, 32, btn_y + 2), "A~l~ways Allow", CM_ALWAYS_ALLOW, false)));
-        dialog.add(Box::new(Button::new(Rect::new(34, btn_y, 46, btn_y + 2), "~D~eny", CM_DENY, false)));
+        dialog.add(Box::new(Button::new(
+            Rect::new(2, btn_y, 14, btn_y + 2),
+            "~A~pprove",
+            CM_APPROVE,
+            true,
+        )));
+        dialog.add(Box::new(Button::new(
+            Rect::new(16, btn_y, 32, btn_y + 2),
+            "A~l~ways Allow",
+            CM_ALWAYS_ALLOW,
+            false,
+        )));
+        dialog.add(Box::new(Button::new(
+            Rect::new(34, btn_y, 46, btn_y + 2),
+            "~D~eny",
+            CM_DENY,
+            false,
+        )));
 
         dialog.set_initial_focus();
 
@@ -54,16 +80,40 @@ impl PermissionDialog {
 }
 
 impl View for PermissionDialog {
-    fn bounds(&self) -> Rect { self.dialog.bounds() }
-    fn set_bounds(&mut self, bounds: Rect) { self.dialog.set_bounds(bounds); }
-    fn draw(&mut self, terminal: &mut Terminal) { self.dialog.draw(terminal); }
-    fn handle_event(&mut self, event: &mut Event) { self.dialog.handle_event(event); }
-    fn can_focus(&self) -> bool { true }
-    fn state(&self) -> StateFlags { self.dialog.state() }
-    fn set_state(&mut self, state: StateFlags) { self.dialog.set_state(state); }
-    fn options(&self) -> u16 { self.dialog.options() }
-    fn set_options(&mut self, options: u16) { self.dialog.set_options(options); }
-    fn get_palette(&self) -> Option<turbo_vision::core::palette::Palette> { self.dialog.get_palette() }
-    fn get_end_state(&self) -> CommandId { self.dialog.get_end_state() }
-    fn set_end_state(&mut self, cmd: CommandId) { self.dialog.set_end_state(cmd); }
+    fn bounds(&self) -> Rect {
+        self.dialog.bounds()
+    }
+    fn set_bounds(&mut self, bounds: Rect) {
+        self.dialog.set_bounds(bounds);
+    }
+    fn draw(&mut self, terminal: &mut Terminal) {
+        self.dialog.draw(terminal);
+    }
+    fn handle_event(&mut self, event: &mut Event) {
+        self.dialog.handle_event(event);
+    }
+    fn can_focus(&self) -> bool {
+        true
+    }
+    fn state(&self) -> StateFlags {
+        self.dialog.state()
+    }
+    fn set_state(&mut self, state: StateFlags) {
+        self.dialog.set_state(state);
+    }
+    fn options(&self) -> u16 {
+        self.dialog.options()
+    }
+    fn set_options(&mut self, options: u16) {
+        self.dialog.set_options(options);
+    }
+    fn get_palette(&self) -> Option<turbo_vision::core::palette::Palette> {
+        self.dialog.get_palette()
+    }
+    fn get_end_state(&self) -> CommandId {
+        self.dialog.get_end_state()
+    }
+    fn set_end_state(&mut self, cmd: CommandId) {
+        self.dialog.set_end_state(cmd);
+    }
 }

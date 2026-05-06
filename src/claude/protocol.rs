@@ -2,12 +2,30 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum UiEvent {
-    Init { session_id: String, model: String },
-    TextDelta { text: String },
-    ThinkingDelta { text: String },
-    ToolStart { tool_name: String, tool_id: String, input: Option<String> },
-    ToolProgress { tool_id: String, content: String },
-    ToolDone { tool_id: String, output: Option<String>, is_error: bool },
+    Init {
+        session_id: String,
+        model: String,
+    },
+    TextDelta {
+        text: String,
+    },
+    ThinkingDelta {
+        text: String,
+    },
+    ToolStart {
+        tool_name: String,
+        tool_id: String,
+        input: Option<String>,
+    },
+    ToolProgress {
+        tool_id: String,
+        content: String,
+    },
+    ToolDone {
+        tool_id: String,
+        output: Option<String>,
+        is_error: bool,
+    },
     Result {
         session_id: String,
         duration_ms: u64,
@@ -15,7 +33,9 @@ pub enum UiEvent {
         input_tokens: u64,
         output_tokens: u64,
     },
-    Error { message: String },
+    Error {
+        message: String,
+    },
     StderrLine(String),
     ProcessExited(i32),
 }
@@ -25,6 +45,12 @@ pub struct StreamState {
     pub tool_inputs: HashMap<String, String>,
     pub current_tool_id: Option<String>,
     pub emitted_text: bool,
+}
+
+impl Default for StreamState {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StreamState {
@@ -55,7 +81,9 @@ pub fn dispatch_event(json: &serde_json::Value, state: &mut StreamState) -> Vec<
 
 fn dispatch_system(json: &serde_json::Value, state: &mut StreamState) -> Vec<UiEvent> {
     let subtype = json["subtype"].as_str().unwrap_or("");
-    if subtype != "init" { return vec![]; }
+    if subtype != "init" {
+        return vec![];
+    }
     let session_id = json["session_id"].as_str().unwrap_or("").to_string();
     let model = json["model"].as_str().unwrap_or("unknown").to_string();
     state.session_id = Some(session_id.clone());
@@ -82,7 +110,11 @@ fn dispatch_stream_event(json: &serde_json::Value, state: &mut StreamState) -> V
                 "input_json_delta" => {
                     let partial = delta["partial_json"].as_str().unwrap_or("");
                     if let Some(ref tool_id) = state.current_tool_id {
-                        state.tool_inputs.entry(tool_id.clone()).or_default().push_str(partial);
+                        state
+                            .tool_inputs
+                            .entry(tool_id.clone())
+                            .or_default()
+                            .push_str(partial);
                     }
                     vec![]
                 }
@@ -95,13 +127,19 @@ fn dispatch_stream_event(json: &serde_json::Value, state: &mut StreamState) -> V
             if block_type == "tool_use" {
                 let tool_id = block["id"].as_str().unwrap_or("").to_string();
                 let tool_name = block["name"].as_str().unwrap_or("").to_string();
-                let input = if block["input"].is_object() && !block["input"].as_object().unwrap().is_empty() {
+                let input = if block["input"].is_object()
+                    && !block["input"].as_object().unwrap().is_empty()
+                {
                     Some(block["input"].to_string())
                 } else {
                     None
                 };
                 state.current_tool_id = Some(tool_id.clone());
-                vec![UiEvent::ToolStart { tool_name, tool_id, input }]
+                vec![UiEvent::ToolStart {
+                    tool_name,
+                    tool_id,
+                    input,
+                }]
             } else {
                 vec![]
             }
@@ -121,7 +159,11 @@ fn dispatch_tool_progress(json: &serde_json::Value, state: &mut StreamState) -> 
         let tool_name = json["tool_name"].as_str().unwrap_or("unknown").to_string();
         state.current_tool_id = Some(tool_id.clone());
         return vec![
-            UiEvent::ToolStart { tool_name, tool_id: tool_id.clone(), input: None },
+            UiEvent::ToolStart {
+                tool_name,
+                tool_id: tool_id.clone(),
+                input: None,
+            },
             UiEvent::ToolProgress { tool_id, content },
         ];
     }
@@ -132,11 +174,17 @@ fn dispatch_tool_result(json: &serde_json::Value, _state: &mut StreamState) -> V
     let tool_id = json["tool_use_id"].as_str().unwrap_or("").to_string();
     let output = json["content"].as_str().map(String::from);
     let is_error = json["is_error"].as_bool().unwrap_or(false);
-    vec![UiEvent::ToolDone { tool_id, output, is_error }]
+    vec![UiEvent::ToolDone {
+        tool_id,
+        output,
+        is_error,
+    }]
 }
 
 fn dispatch_result(json: &serde_json::Value, state: &mut StreamState) -> Vec<UiEvent> {
-    let session_id = json["session_id"].as_str().map(String::from)
+    let session_id = json["session_id"]
+        .as_str()
+        .map(String::from)
         .or_else(|| state.session_id.clone())
         .unwrap_or_default();
     let duration_ms = json["duration_ms"].as_u64().unwrap_or(0);
@@ -145,5 +193,11 @@ fn dispatch_result(json: &serde_json::Value, state: &mut StreamState) -> Vec<UiE
     let input_tokens = usage["input_tokens"].as_u64().unwrap_or(0);
     let output_tokens = usage["output_tokens"].as_u64().unwrap_or(0);
     state.session_id = Some(session_id.clone());
-    vec![UiEvent::Result { session_id, duration_ms, cost_usd, input_tokens, output_tokens }]
+    vec![UiEvent::Result {
+        session_id,
+        duration_ms,
+        cost_usd,
+        input_tokens,
+        output_tokens,
+    }]
 }

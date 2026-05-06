@@ -1,4 +1,4 @@
-use turbo_claw::claude::protocol::{dispatch_event, UiEvent, StreamState};
+use turbo_claw::claude::protocol::{StreamState, UiEvent, dispatch_event};
 
 #[test]
 fn parse_system_init() {
@@ -7,7 +7,10 @@ fn parse_system_init() {
     let events = dispatch_event(&json, &mut state);
     assert_eq!(events.len(), 1);
     match &events[0] {
-        UiEvent::Init { session_id, model } => { assert_eq!(session_id, "abc123"); assert_eq!(model, "claude-opus-4-6"); }
+        UiEvent::Init { session_id, model } => {
+            assert_eq!(session_id, "abc123");
+            assert_eq!(model, "claude-opus-4-6");
+        }
         other => panic!("Expected Init, got {other:?}"),
     }
     assert_eq!(state.session_id.as_deref(), Some("abc123"));
@@ -19,7 +22,10 @@ fn parse_text_delta() {
     let mut state = StreamState::new();
     let events = dispatch_event(&json, &mut state);
     assert_eq!(events.len(), 1);
-    match &events[0] { UiEvent::TextDelta { text } => assert_eq!(text, "Hello "), other => panic!("Expected TextDelta, got {other:?}") }
+    match &events[0] {
+        UiEvent::TextDelta { text } => assert_eq!(text, "Hello "),
+        other => panic!("Expected TextDelta, got {other:?}"),
+    }
 }
 
 #[test]
@@ -28,7 +34,10 @@ fn parse_thinking_delta() {
     let mut state = StreamState::new();
     let events = dispatch_event(&json, &mut state);
     assert_eq!(events.len(), 1);
-    match &events[0] { UiEvent::ThinkingDelta { text } => assert_eq!(text, "Let me think..."), other => panic!("Expected ThinkingDelta, got {other:?}") }
+    match &events[0] {
+        UiEvent::ThinkingDelta { text } => assert_eq!(text, "Let me think..."),
+        other => panic!("Expected ThinkingDelta, got {other:?}"),
+    }
 }
 
 #[test]
@@ -37,7 +46,15 @@ fn parse_tool_start() {
     let mut state = StreamState::new();
     let events = dispatch_event(&json, &mut state);
     assert_eq!(events.len(), 1);
-    match &events[0] { UiEvent::ToolStart { tool_name, tool_id, .. } => { assert_eq!(tool_name, "Read"); assert_eq!(tool_id, "tool_123"); } other => panic!("Expected ToolStart, got {other:?}") }
+    match &events[0] {
+        UiEvent::ToolStart {
+            tool_name, tool_id, ..
+        } => {
+            assert_eq!(tool_name, "Read");
+            assert_eq!(tool_id, "tool_123");
+        }
+        other => panic!("Expected ToolStart, got {other:?}"),
+    }
     assert_eq!(state.current_tool_id.as_deref(), Some("tool_123"));
 }
 
@@ -47,7 +64,18 @@ fn parse_tool_result() {
     let mut state = StreamState::new();
     let events = dispatch_event(&json, &mut state);
     assert_eq!(events.len(), 1);
-    match &events[0] { UiEvent::ToolDone { tool_id, output, is_error } => { assert_eq!(tool_id, "tool_123"); assert_eq!(output.as_deref(), Some("File contents here")); assert!(!is_error); } other => panic!("Expected ToolDone, got {other:?}") }
+    match &events[0] {
+        UiEvent::ToolDone {
+            tool_id,
+            output,
+            is_error,
+        } => {
+            assert_eq!(tool_id, "tool_123");
+            assert_eq!(output.as_deref(), Some("File contents here"));
+            assert!(!is_error);
+        }
+        other => panic!("Expected ToolDone, got {other:?}"),
+    }
 }
 
 #[test]
@@ -56,12 +84,25 @@ fn parse_result() {
     let mut state = StreamState::new();
     let events = dispatch_event(&json, &mut state);
     assert_eq!(events.len(), 1);
-    match &events[0] { UiEvent::Result { session_id, duration_ms, cost_usd, .. } => { assert_eq!(session_id, "abc123"); assert_eq!(*duration_ms, 3200); assert!((*cost_usd - 0.05).abs() < f64::EPSILON); } other => panic!("Expected Result, got {other:?}") }
+    match &events[0] {
+        UiEvent::Result {
+            session_id,
+            duration_ms,
+            cost_usd,
+            ..
+        } => {
+            assert_eq!(session_id, "abc123");
+            assert_eq!(*duration_ms, 3200);
+            assert!((*cost_usd - 0.05).abs() < f64::EPSILON);
+        }
+        other => panic!("Expected Result, got {other:?}"),
+    }
 }
 
 #[test]
 fn unknown_type_returns_empty() {
-    let json: serde_json::Value = serde_json::from_str(r#"{"type":"some_future_type","data":42}"#).unwrap();
+    let json: serde_json::Value =
+        serde_json::from_str(r#"{"type":"some_future_type","data":42}"#).unwrap();
     let mut state = StreamState::new();
     let events = dispatch_event(&json, &mut state);
     assert!(events.is_empty());

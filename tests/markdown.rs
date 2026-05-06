@@ -20,19 +20,33 @@ fn heading() {
 fn code_block() {
     let input = "```rust\nfn main() {}\n```";
     let lines = render_markdown(input);
-    assert!(lines.iter().any(|l| l.is_code && l.text.contains("fn main")));
+    assert!(
+        lines
+            .iter()
+            .any(|l| l.is_code && l.text.contains("fn main"))
+    );
 }
 
 #[test]
 fn inline_code() {
     let lines = render_markdown("Use `cargo build` to compile");
     assert_eq!(lines.len(), 1);
-    assert!(lines[0].segments.iter().any(|s| s.is_code && s.text == "cargo build"));
+    assert!(
+        lines[0]
+            .segments
+            .iter()
+            .any(|s| s.is_code && s.text == "cargo build")
+    );
 }
 
 #[test]
 fn bold_text() {
     let lines = render_markdown("This is **important** text");
     assert_eq!(lines.len(), 1);
-    assert!(lines[0].segments.iter().any(|s| s.is_bold && s.text == "important"));
+    assert!(
+        lines[0]
+            .segments
+            .iter()
+            .any(|s| s.is_bold && s.text == "important")
+    );
 }

@@ -1,5 +1,5 @@
 use super::binary::find_claude_binary;
-use super::protocol::{dispatch_event, StreamState, UiEvent};
+use super::protocol::{StreamState, UiEvent, dispatch_event};
 use std::collections::HashSet;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, Command, Stdio};
@@ -57,8 +57,7 @@ impl Session {
         let stdout = child.stdout.take().ok_or("No stdout handle")?;
         let stderr = child.stderr.take().ok_or("No stderr handle")?;
 
-        let (tx, receiver): (mpsc::Sender<UiEvent>, mpsc::Receiver<UiEvent>) =
-            mpsc::channel();
+        let (tx, receiver): (mpsc::Sender<UiEvent>, mpsc::Receiver<UiEvent>) = mpsc::channel();
 
         let tx_stdout = tx.clone();
         let stdout_thread = thread::spawn(move || {

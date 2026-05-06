@@ -23,21 +23,37 @@ cargo fmt                # Auto-format
 
 ## Architecture
 
-**Thread model:** Main UI thread (Turbo Vision event loop) + background reader threads for stdout/stderr from the Claude CLI child process, connected via `mpsc` channels.
+**Thread model:** Main UI thread (custom Turbo Vision event loop) + background reader threads for stdout/stderr from the Claude CLI child process, connected via `mpsc` channels.
 
-**Data flow:** Claude CLI stdout (NDJSON) → reader thread deserializes → `mpsc::send(UiEvent)` → UI thread's `idle()` polls receiver → dispatches to views.
+**Data flow:** Claude CLI stdout (NDJSON) → reader thread dispatches via `protocol::dispatch_event` → `mpsc::send(UiEvent)` → UI thread polls via `flow.poll()` on each loop iteration → dispatches to `OutputView`.
 
-**Planned module structure:**
-- `claude/` — Binary discovery, child process spawning, NDJSON serde types (`SdkMessage` enum with `#[serde(tag = "type")]`)
-- `ui/` — Turbo Vision views: chat, tool panel, input line, status bar, permission dialog, markdown renderer
-- `bridge.rs` — mpsc channel between reader threads and UI
-- `config.rs` — CLI args, MCP config
+**Module structure:**
+
+```
+src/
+├── main.rs          — Custom event loop, flow management, menu/status bar
+├── lib.rs           — Crate root (pub mod bridge, claude, ui)
+├── bridge.rs        — mpsc channel helper
+├── claude/
+│   ├── mod.rs
+│   ├── binary.rs    — Find claude CLI binary on disk
+│   ├── session.rs   — Spawn process, reader threads, stdin write
+│   └── protocol.rs  — NDJSON dispatch, UiEvent, StreamState
+└── ui/
+    ├── mod.rs
+    ├── flow.rs              — Flow state machine (Idle/Running/Done)
+    ├── output_view.rs       — Window + TerminalWidget for streamed output
+    ├── prompt_dialog.rs     — Modal Memo input + OK/Cancel
+    ├── progress_dialog.rs   — Modal status/cost display + Cancel
+    ├── permission_dialog.rs — Approve/Always Allow/Deny modal
+    └── markdown.rs          — pulldown-cmark renderer
+```
 
 **Key design decisions:**
-- Uses `idle()` polling on the TV event loop (non-blocking `try_recv`) rather than async or fd multiplexing
+- Non-blocking `try_recv` polling on each event loop tick — no `idle()` hook, no async, no fd multiplexing
 - Stdin writes to the child process happen synchronously from the UI thread (no writer thread)
-- Claude Code is spawned with `--no-session --print-streaming --permission-mode <mode>`
-- The TUI framework decision (turbo-vision-4-rust vs ratatui fallback) is still open
+- Claude Code is spawned with `--output-format stream-json --verbose`
+- Progress dialog is driven by a manual modal loop (not `exec_view`) so flow polling continues while the dialog is open
 
 ## Rust Edition
 
