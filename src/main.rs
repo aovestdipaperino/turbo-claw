@@ -1,3 +1,5 @@
+mod claude;
+
 use turbo_vision::app::Application;
 use turbo_vision::core::command::{CM_QUIT, CommandId};
 use turbo_vision::core::event::{KB_CTRL_N, KB_F10};
