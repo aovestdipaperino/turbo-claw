@@ -48,7 +48,7 @@ impl Session {
         let mut child = Command::new(&claude_path)
             .args(&args)
             .env_remove("CLAUDECODE")
-            .stdin(Stdio::piped())
+            .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
