@@ -4,6 +4,8 @@
 
 Single-binary Rust. No Node.js runtime.
 
+![Turbo Claw screenshot](docs/screenshot.png)
+
 ## Features
 
 - Spawns Claude Code as a subprocess with `--output-format stream-json`
