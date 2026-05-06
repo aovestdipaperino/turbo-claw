@@ -3,20 +3,21 @@ use std::rc::Rc;
 
 use turbo_vision::core::palette::{Attr, TvColor};
 use turbo_vision::views::terminal_widget::TerminalWidget;
+use turbo_vision::views::View;
 
 use crate::claude::protocol::UiEvent;
 use crate::claude::session::Session;
 use crate::ui::markdown::render_markdown;
 use std::collections::HashSet;
 
-const ATTR_TEXT: Attr = Attr::new(TvColor::White, TvColor::Blue);
-const ATTR_THINKING: Attr = Attr::new(TvColor::DarkGray, TvColor::Blue);
-const ATTR_TOOL_FRAME: Attr = Attr::new(TvColor::LightCyan, TvColor::Blue);
-const ATTR_TOOL_OK: Attr = Attr::new(TvColor::LightGreen, TvColor::Blue);
-const ATTR_TOOL_ERR: Attr = Attr::new(TvColor::LightRed, TvColor::Blue);
-const ATTR_SEPARATOR: Attr = Attr::new(TvColor::DarkGray, TvColor::Blue);
-const ATTR_BOLD: Attr = Attr::new(TvColor::White, TvColor::Blue);
-const ATTR_CODE: Attr = Attr::new(TvColor::LightGreen, TvColor::Blue);
+const ATTR_TEXT: Attr = Attr::new(TvColor::White, TvColor::Black);
+const ATTR_THINKING: Attr = Attr::new(TvColor::DarkGray, TvColor::Black);
+const ATTR_TOOL_FRAME: Attr = Attr::new(TvColor::LightCyan, TvColor::Black);
+const ATTR_TOOL_OK: Attr = Attr::new(TvColor::LightGreen, TvColor::Black);
+const ATTR_TOOL_ERR: Attr = Attr::new(TvColor::LightRed, TvColor::Black);
+const ATTR_SEPARATOR: Attr = Attr::new(TvColor::DarkGray, TvColor::Black);
+const ATTR_BOLD: Attr = Attr::new(TvColor::White, TvColor::Black);
+const ATTR_CODE: Attr = Attr::new(TvColor::LightGreen, TvColor::Black);
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FlowState {
@@ -142,9 +143,7 @@ impl Flow {
                 while let Some(pos) = self.thinking_buffer.find('\n') {
                     let line = self.thinking_buffer[..pos].to_string();
                     let display = format!("[thinking] {line}");
-                    self.widget
-                        .borrow_mut()
-                        .append_line_colored(display, ATTR_THINKING);
+                    self.append_wrapped(&display, ATTR_THINKING);
                     self.thinking_buffer = self.thinking_buffer[pos + 1..].to_string();
                 }
             }
@@ -154,26 +153,16 @@ impl Flow {
                 self.flush_text();
                 self.flush_thinking();
                 let header = format!("┌─ {tool_name} ─────────────────────────");
-                self.widget
-                    .borrow_mut()
-                    .append_line_colored(header, ATTR_TOOL_FRAME);
+                self.append_wrapped(&header, ATTR_TOOL_FRAME);
                 if let Some(input_str) = input {
-                    let display = if input_str.len() > 120 {
-                        format!("│ {}...", &input_str[..117])
-                    } else {
-                        format!("│ {input_str}")
-                    };
-                    self.widget
-                        .borrow_mut()
-                        .append_line_colored(display, ATTR_TOOL_FRAME);
+                    let display = format!("│ {input_str}");
+                    self.append_wrapped(&display, ATTR_TOOL_FRAME);
                 }
             }
             UiEvent::ToolProgress { content, .. } => {
                 for line in content.lines() {
                     let display = format!("│ {line}");
-                    self.widget
-                        .borrow_mut()
-                        .append_line_colored(display, ATTR_TOOL_FRAME);
+                    self.append_wrapped(&display, ATTR_TOOL_FRAME);
                 }
             }
             UiEvent::ToolDone {
@@ -186,15 +175,10 @@ impl Flow {
                 };
                 if let Some(out) = output {
                     let first_line = out.lines().next().unwrap_or("");
-                    let display = if first_line.len() > 100 {
-                        format!("│ {}...", &first_line[..97])
-                    } else {
-                        format!("│ {first_line}")
-                    };
-                    self.widget.borrow_mut().append_line_colored(display, attr);
+                    self.append_wrapped(&format!("│ {first_line}"), attr);
                 }
                 let footer = format!("└─ {marker} ─────────────────────────");
-                self.widget.borrow_mut().append_line_colored(footer, attr);
+                self.append_wrapped(&footer, attr);
             }
             UiEvent::Result {
                 duration_ms,
@@ -209,23 +193,17 @@ impl Flow {
                 let total_tokens = input_tokens + output_tokens;
                 let sep =
                     format!("── Done ({secs:.1}s, ${cost_usd:.4}, {total_tokens} tokens) ──");
-                self.widget
-                    .borrow_mut()
-                    .append_line_colored(sep, ATTR_SEPARATOR);
+                self.append_wrapped(&sep, ATTR_SEPARATOR);
             }
             UiEvent::Error { message } => {
-                self.widget
-                    .borrow_mut()
-                    .append_line_colored(format!("ERROR: {message}"), ATTR_TOOL_ERR);
+                self.append_wrapped(&format!("ERROR: {message}"), ATTR_TOOL_ERR);
             }
             UiEvent::StderrLine(line) => {
-                self.widget
-                    .borrow_mut()
-                    .append_line_colored(format!("stderr: {line}"), ATTR_THINKING);
+                self.append_wrapped(&format!("stderr: {line}"), ATTR_THINKING);
             }
             UiEvent::ProcessExited(code) => {
-                self.widget.borrow_mut().append_line_colored(
-                    format!("Process exited with code {code}"),
+                self.append_wrapped(
+                    &format!("Process exited with code {code}"),
                     ATTR_SEPARATOR,
                 );
             }
@@ -243,9 +221,7 @@ impl Flow {
         if !self.thinking_buffer.is_empty() {
             let remaining = std::mem::take(&mut self.thinking_buffer);
             let display = format!("[thinking] {remaining}");
-            self.widget
-                .borrow_mut()
-                .append_line_colored(display, ATTR_THINKING);
+            self.append_wrapped(&display, ATTR_THINKING);
         }
     }
 
@@ -259,9 +235,44 @@ impl Flow {
             } else {
                 ATTR_TEXT
             };
-            self.widget
-                .borrow_mut()
-                .append_line_colored(rline.text, attr);
+            self.append_wrapped(&rline.text, attr);
+        }
+    }
+
+    /// Append text with word-wrapping to the widget's current visible width.
+    fn append_wrapped(&mut self, text: &str, attr: Attr) {
+        let w = self.widget.borrow();
+        let width = w.bounds().width_clamped() as usize;
+        // Account for scrollbar
+        let width = width.saturating_sub(1).max(10);
+        drop(w);
+
+        if text.len() <= width {
+            self.widget.borrow_mut().append_line_colored(text.to_string(), attr);
+            return;
+        }
+
+        // Word-wrap
+        let mut remaining = text;
+        while !remaining.is_empty() {
+            if remaining.len() <= width {
+                self.widget.borrow_mut().append_line_colored(remaining.to_string(), attr);
+                break;
+            }
+            // Find last space within width
+            let chunk = &remaining[..width];
+            let break_at = chunk.rfind(' ').unwrap_or(width);
+            let (line, rest) = if break_at == 0 {
+                // No space found — hard break
+                remaining.split_at(width)
+            } else {
+                let (l, r) = remaining.split_at(break_at);
+                // Skip the space
+                let r = r.strip_prefix(' ').unwrap_or(r);
+                (l, r)
+            };
+            self.widget.borrow_mut().append_line_colored(line.to_string(), attr);
+            remaining = rest;
         }
     }
 }

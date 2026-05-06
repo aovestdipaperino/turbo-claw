@@ -8,7 +8,7 @@ use turbo_vision::core::state::StateFlags;
 use turbo_vision::terminal::Terminal;
 use turbo_vision::views::terminal_widget::TerminalWidget;
 use turbo_vision::views::view::View;
-use turbo_vision::views::window::Window;
+use turbo_vision::views::window::{Window, WindowPaletteType};
 
 pub const CM_OPEN_PROMPT: CommandId = 201;
 
@@ -48,7 +48,11 @@ pub struct OutputView {
 
 impl OutputView {
     pub fn new(bounds: Rect, title: &str) -> Self {
-        let mut window = Window::new(bounds, title);
+        let mut window = Window::new_with_type(bounds, title, WindowPaletteType::Blue);
+        // Black background palette (same as LogWindow)
+        window.set_custom_palette(vec![
+            97, 98, 99, 100, 101, 102, 103, 104,
+        ]);
         let mut interior = bounds;
         interior.grow(-1, -1);
         let widget = Rc::new(RefCell::new(TerminalWidget::new(interior).with_scrollbar()));
