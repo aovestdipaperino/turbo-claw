@@ -1,0 +1,117 @@
+<h2>Flow Lifecycle (revised)</h2>
+<p class="subtitle">Output window is the resting state. Enter opens the prompt dialog.</p>
+
+<div class="mockup">
+  <div class="mockup-header">1. Empty Desktop → Menu creates a flow</div>
+  <div class="mockup-body" style="background: #1a1a2e; color: #ccc; font-family: monospace; padding: 16px; min-height: 180px;">
+    <div style="background: #0f3460; padding: 4px 12px; display: flex; justify-content: space-between;">
+      <span>≡ <u>F</u>low  <u>H</u>elp</span>
+      <span style="color:#888">Turbo Claw v0.1</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; min-height: 130px; color: #555;">
+      ░░░ empty desktop — Ctrl+N to start ░░░
+    </div>
+    <div style="background: #0f3460; padding: 4px 12px; color: #888; font-size: 0.85em;">
+      Ctrl+N: New Flow │ F10: Quit
+    </div>
+  </div>
+</div>
+
+<div style="text-align: center; padding: 8px; font-size: 1.2em; color: #666;">▼ Ctrl+N</div>
+
+<div class="mockup">
+  <div class="mockup-header">2. Output window + Prompt dialog (first time only, auto-opens)</div>
+  <div class="mockup-body" style="background: #1a1a2e; color: #ccc; font-family: monospace; padding: 16px; min-height: 220px;">
+    <div style="background: #0f3460; padding: 4px 12px;">≡ Flow  Help</div>
+    <div style="position: relative; min-height: 180px;">
+      <div style="border: 2px solid #444; margin: 8px; padding: 0; background: #16213e;">
+        <div style="background: #333; padding: 2px 8px; text-align: center; border-bottom: 1px solid #444;">═══ Flow #1 ═══</div>
+        <div style="padding: 8px; min-height: 60px; color: #555; text-align: center;">
+          <br>Waiting for prompt...
+        </div>
+      </div>
+      <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); border: 2px solid #e94560; background: #16213e; min-width: 320px; box-shadow: 4px 4px 0 rgba(0,0,0,0.5);">
+        <div style="background: #e94560; padding: 2px 8px; text-align: center; color: white;">═══ Enter Prompt ═══</div>
+        <div style="padding: 12px;">
+          <div style="border: 1px solid #666; background: #0d1b2a; padding: 8px; min-height: 50px; color: #aaa;">
+            How does the config module work?<br><span style="color: #e94560">█</span>
+          </div>
+          <div style="text-align: center; margin-top: 8px;">
+            <span style="border: 1px solid #666; padding: 2px 16px; background: #0f3460; color: white;">[ OK ]</span>
+            <span style="border: 1px solid #666; padding: 2px 12px; background: #333; color: #888; margin-left: 8px;">[ Cancel ]</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="background: #0f3460; padding: 4px 12px; color: #888; font-size: 0.85em;">
+      Enter: Send │ Esc: Cancel
+    </div>
+  </div>
+</div>
+
+<div style="text-align: center; padding: 8px; font-size: 1.2em; color: #666;">▼ OK</div>
+
+<div class="mockup">
+  <div class="mockup-header">3. Progress dialog while Claude streams output</div>
+  <div class="mockup-body" style="background: #1a1a2e; color: #ccc; font-family: monospace; padding: 16px; min-height: 240px;">
+    <div style="background: #0f3460; padding: 4px 12px;">≡ Flow  Help</div>
+    <div style="position: relative; min-height: 200px;">
+      <div style="border: 2px solid #444; margin: 8px; padding: 0; background: #16213e;">
+        <div style="background: #333; padding: 2px 8px; text-align: center; border-bottom: 1px solid #444;">═══ Flow #1 — claude-opus-4-6 ═══</div>
+        <div style="padding: 8px; font-size: 0.9em;">
+          <div style="color: #888; font-style: italic;">💭 Let me look at the config module...</div>
+          <div style="border: 1px solid #555; margin: 4px 0; padding: 4px;">
+            <div style="color: #e94560;">┌─ Read src/config.rs ──────────┐</div>
+            <div style="color: #aaa;">│ ✓ 45 lines read              │</div>
+            <div style="color: #e94560;">└───────────────────────────────┘</div>
+          </div>
+          <div style="color: #ccc;">The config module handles CLI argument parsing and...</div>
+        </div>
+      </div>
+      <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); border: 2px solid #e94560; background: #16213e; min-width: 280px; box-shadow: 4px 4px 0 rgba(0,0,0,0.5);">
+        <div style="background: #e94560; padding: 2px 8px; text-align: center; color: white;">═══ Running ═══</div>
+        <div style="padding: 12px; text-align: center;">
+          <div style="color: #aaa; margin-bottom: 8px;">Reading file... ◐</div>
+          <div style="color: #888; font-size: 0.85em; margin-bottom: 8px;">$0.03 │ 1.2k tokens</div>
+          <span style="border: 1px solid #666; padding: 2px 12px; background: #333; color: #e94560;">[ Cancel ]</span>
+        </div>
+      </div>
+    </div>
+    <div style="background: #0f3460; padding: 4px 12px; color: #888; font-size: 0.85em;">
+      Esc: Cancel generation
+    </div>
+  </div>
+</div>
+
+<div style="text-align: center; padding: 8px; font-size: 1.2em; color: #666;">▼ Claude finishes</div>
+
+<div class="mockup">
+  <div class="mockup-header">4. Output window — resting state (press Enter for next prompt)</div>
+  <div class="mockup-body" style="background: #1a1a2e; color: #ccc; font-family: monospace; padding: 16px; min-height: 200px;">
+    <div style="background: #0f3460; padding: 4px 12px;">≡ Flow  Help</div>
+    <div style="border: 2px solid #e94560; margin: 8px; padding: 0; background: #16213e;">
+      <div style="background: #333; padding: 2px 8px; text-align: center; border-bottom: 1px solid #444;">═══ Flow #1 — claude-opus-4-6 ═══</div>
+      <div style="padding: 8px; font-size: 0.9em;">
+        <div style="color: #888; font-style: italic;">💭 Let me look at the config module...</div>
+        <div style="border: 1px solid #555; margin: 4px 0; padding: 4px;">
+          <div style="color: #e94560;">┌─ Read src/config.rs ──────────┐</div>
+          <div style="color: #aaa;">│ ✓ 45 lines read              │</div>
+          <div style="color: #e94560;">└───────────────────────────────┘</div>
+        </div>
+        <div style="color: #ccc;"><strong>The config module</strong> handles CLI argument parsing using <code style="background:#0d1b2a;padding:1px 4px;">clap</code>. It defines a <code style="background:#0d1b2a;padding:1px 4px;">Config</code> struct with fields for...</div>
+        <div style="border-top: 1px solid #444; margin: 8px 0 4px 0; padding-top: 4px; color: #888; font-size: 0.85em;">
+          ── Done (3.2s, $0.05, 2.4k tokens) ──
+        </div>
+      </div>
+    </div>
+    <div style="background: #0f3460; padding: 4px 12px; color: #888; font-size: 0.85em;">
+      Enter: New prompt │ PgUp/PgDn: Scroll │ Ctrl+N: New Flow │ F10: Quit
+    </div>
+  </div>
+</div>
+
+<div style="text-align: center; padding: 8px; font-size: 1.2em; color: #666;">▼ User presses Enter</div>
+
+<div style="text-align: center; padding: 8px; color: #888; font-style: italic;">
+  → Back to step 2 (prompt dialog opens over output window)
+</div>

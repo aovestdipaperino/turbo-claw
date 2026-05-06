@@ -1,0 +1,3 @@
+[submodule "vendor/tolaria"]
+	path = vendor/tolaria
+	url = https://github.com/refactoringhq/tolaria.git
