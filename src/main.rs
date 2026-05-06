@@ -1,4 +1,5 @@
 mod claude;
+mod ui;
 
 use turbo_vision::app::Application;
 use turbo_vision::core::command::{CM_QUIT, CommandId};
