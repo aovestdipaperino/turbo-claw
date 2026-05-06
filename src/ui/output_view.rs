@@ -147,12 +147,17 @@ impl OutputView {
     }
 
     fn append_markdown_line(&mut self, line: &str) {
-        if line.starts_with("```") {
-            self.widget.borrow_mut().append_line_colored(line.to_string(), ATTR_CODE);
-        } else if line.starts_with("# ") || line.starts_with("## ") || line.starts_with("### ") {
-            self.widget.borrow_mut().append_line_colored(line.to_string(), ATTR_BOLD);
-        } else {
-            self.widget.borrow_mut().append_line_colored(line.to_string(), ATTR_TEXT);
+        use crate::ui::markdown::render_markdown;
+        let rendered = render_markdown(line);
+        for rline in rendered {
+            let attr = if rline.is_heading {
+                ATTR_BOLD
+            } else if rline.is_code {
+                ATTR_CODE
+            } else {
+                ATTR_TEXT
+            };
+            self.widget.borrow_mut().append_line_colored(rline.text, attr);
         }
     }
 }
