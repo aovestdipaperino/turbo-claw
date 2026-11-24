@@ -1,5 +1,7 @@
 # Turbo Claw
 
+[![GitHub stars](https://img.shields.io/github/stars/aovestdipaperino/turbo-claw?logo=github&color=brightgreen)](https://github.com/aovestdipaperino/turbo-claw/stargazers)
+
 **Cl**aude **A**gent **W**rapper -- a Turbo Vision TUI that wraps [Claude Code](https://docs.anthropic.com/en/docs/claude-code) as a child process, parsing its streaming JSON output into structured, interactive terminal UI panels.
 
 Single-binary Rust. No Node.js runtime.
